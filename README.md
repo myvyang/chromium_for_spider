@@ -33,5 +33,5 @@
 
 编译完成后，执行`git apply path/to/dbc6c805b7430f401875d50b8566d9f743ca402b.diff`应用这个补丁，然后重新编译。
 
-编译完成后，Mac上可执行文件在`src/out/Release/Chromium.app/Contents/MacOS/Chromium`，Ubuntu上可执行文件在`src/out/Release/chrome`。
+Mac上可执行文件在`src/out/Release/Chromium.app/Contents/MacOS/Chromium`，Ubuntu上可执行文件在`src/out/Release/chrome`。
 
