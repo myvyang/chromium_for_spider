@@ -1,6 +1,7 @@
 ## 核心功能
 
 通过修改chromium源码，主要实现两件动态爬虫中比较关注的两个功能：
+
     1. 禁止当前页面被跳转，同时将即将跳转的URL收集起来备用。这里通过修改了一个比较底层的函数来实现的，不需要做各种场景的hook了。
     2. hook当前页面绑定的所有非默认事件，并保留场景供后续触发。这样爬虫不需要遍历所有DOM节点了。
 
@@ -32,22 +33,4 @@
 编译完成后，执行`git apply path/to/dbc6c805b7430f401875d50b8566d9f743ca402b.diff`应用这个补丁，然后重新编译。
 
 编译完成后，Mac上可执行文件在`src/out/Release/Chromium.app/Contents/MacOS/Chromium`，Ubuntu上可执行文件在`src/out/Release/chrome`。
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
