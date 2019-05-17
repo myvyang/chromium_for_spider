@@ -1,0 +1,35 @@
+
+<div id="test">aaaaa</div>
+<script>
+    let test = document.getElementById("test");
+    test.onclick = function() {
+        console.log("test");
+    }
+    console.log(window.eventNodes);
+</script>
+
+<script>
+
+    var firedEventNames = ["focus", "mouseover", "mousedown", "click", "error"];
+    var firedEvents = {};
+
+    var length = firedEventNames.length;
+
+    for (var i = 0; i < length; i++) {
+        firedEvents[firedEventNames[i]] = document.createEvent("HTMLEvents");
+        firedEvents[firedEventNames[i]].initEvent(firedEventNames[i], true, true);
+    }
+
+    var eventLength = window.eventNames.length;
+    for (var i = 0; i < eventLength; i++) {
+        var eventName =  window.eventNames[i].split("_-_")[0];
+        var eventNode =  window.eventNodes[i];
+
+        var index = firedEventNames.indexOf(eventName);
+        if (index > -1) {
+            if (eventNode != undefined) {
+                eventNode.dispatchEvent(firedEvents[eventName]);
+            }
+        }
+    }
+</script>

@@ -1,0 +1,397 @@
+diff --git a/chrome/browser/download/download_request_limiter.cc b/chrome/browser/download/download_request_limiter.cc
+index 75cb0faf7e20..ae816a21408d 100644
+--- a/chrome/browser/download/download_request_limiter.cc
++++ b/chrome/browser/download/download_request_limiter.cc
+@@ -103,7 +103,7 @@ DownloadRequestLimiter::TabDownloadState::TabDownloadState(
+     : content::WebContentsObserver(contents),
+       web_contents_(contents),
+       host_(host),
+-      status_(DownloadRequestLimiter::ALLOW_ONE_DOWNLOAD),
++      status_(DownloadRequestLimiter::DOWNLOADS_NOT_ALLOWED),
+       ui_status_(DownloadRequestLimiter::DOWNLOAD_UI_DEFAULT),
+       download_count_(0),
+       download_seen_(false),
+@@ -278,7 +278,7 @@ void DownloadRequestLimiter::TabDownloadState::Accept() {
+ DownloadRequestLimiter::TabDownloadState::TabDownloadState()
+     : web_contents_(nullptr),
+       host_(nullptr),
+-      status_(DownloadRequestLimiter::ALLOW_ONE_DOWNLOAD),
++      status_(DownloadRequestLimiter::DOWNLOADS_NOT_ALLOWED),
+       ui_status_(DownloadRequestLimiter::DOWNLOAD_UI_DEFAULT),
+       download_count_(0),
+       download_seen_(false),
+diff --git a/content/browser/frame_host/ancestor_throttle.cc b/content/browser/frame_host/ancestor_throttle.cc
+index 2045100270c2..2e02f31dd7f3 100644
+--- a/content/browser/frame_host/ancestor_throttle.cc
++++ b/content/browser/frame_host/ancestor_throttle.cc
+@@ -263,6 +263,7 @@ void AncestorThrottle::ConsoleError(HeaderDisposition disposition) {
+ AncestorThrottle::HeaderDisposition AncestorThrottle::ParseHeader(
+     const net::HttpResponseHeaders* headers,
+     std::string* header_value) {
++  return HeaderDisposition::ALLOWALL;
+   DCHECK(header_value);
+   if (!headers)
+     return HeaderDisposition::NONE;
+diff --git a/third_party/blink/renderer/core/dom/BUILD.gn b/third_party/blink/renderer/core/dom/BUILD.gn
+index 9557a946f0d3..e6be6871b5c0 100644
+--- a/third_party/blink/renderer/core/dom/BUILD.gn
++++ b/third_party/blink/renderer/core/dom/BUILD.gn
+@@ -88,6 +88,10 @@ blink_core_sources("dom") {
+     "dom_time_stamp.h",
+     "dom_token_list.cc",
+     "dom_token_list.h",
++    "dynamic_node_list.h",
++    "dynamic_node_list.cc",
++    "events/event_node_collection.h",
++    "events/event_node_collection.cc",
+     "element.cc",
+     "element.h",
+     "element_data.cc",
+diff --git a/third_party/blink/renderer/core/dom/dynamic_node_list.cc b/third_party/blink/renderer/core/dom/dynamic_node_list.cc
+new file mode 100644
+index 000000000000..2fcb5de5fe35
+--- /dev/null
++++ b/third_party/blink/renderer/core/dom/dynamic_node_list.cc
+@@ -0,0 +1,23 @@
++#include "third_party/blink/renderer/core/dom/dynamic_node_list.h"
++
++namespace blink {
++
++  unsigned DynamicNodeList::length() const {
++    return nodes_.size();
++  }
++
++  void DynamicNodeList::Trace(Visitor* visitor) {
++    visitor->Trace(nodes_);
++    NodeList::Trace(visitor);
++  }
++
++
++  Node* DynamicNodeList::item(unsigned i) const {
++    return nodes_[i].Get();
++  }
++
++  void DynamicNodeList::AddNode(Node* node) {
++    nodes_.push_back(node);
++  }
++
++}  // namespace blink
+diff --git a/third_party/blink/renderer/core/dom/dynamic_node_list.h b/third_party/blink/renderer/core/dom/dynamic_node_list.h
+new file mode 100644
+index 000000000000..716d0261dcd6
+--- /dev/null
++++ b/third_party/blink/renderer/core/dom/dynamic_node_list.h
+@@ -0,0 +1,31 @@
++#ifndef DynamicNodeList_h
++#define DynamicNodeList_h
++
++#include "third_party/blink/renderer/core/dom/node_list.h"
++#include "third_party/blink/renderer/core/dom/node.h"
++
++namespace blink {
++
++class DynamicNodeList : public NodeList {
++ public:
++
++  DynamicNodeList() {}
++  ~DynamicNodeList() override {}
++
++  void Trace(Visitor*) override;
++
++  bool IsEmptyNodeList() const override { return length() == 0; }
++
++  unsigned length() const override;
++  Node* item(unsigned) const override;
++  void AddNode(Node* node);
++
++ private:
++  Node* VirtualOwnerNode() const override { return nullptr; }
++
++  mutable HeapVector<Member<Node>> nodes_;
++};
++
++}  // namespace blink
++
++#endif  // DynamicNodeList_h
+diff --git a/third_party/blink/renderer/core/dom/events/event_node_collection.cc b/third_party/blink/renderer/core/dom/events/event_node_collection.cc
+new file mode 100644
+index 000000000000..0593864be7eb
+--- /dev/null
++++ b/third_party/blink/renderer/core/dom/events/event_node_collection.cc
+@@ -0,0 +1,26 @@
++#include "third_party/blink/renderer/core/dom/events/event_node_collection.h"
++
++namespace blink {
++
++  EventNodeCollection::EventNodeCollection() {
++    node_list_ = MakeGarbageCollected<DynamicNodeList>();
++    name_list_ = MakeGarbageCollected<DOMStringList>();
++    count_ = 0;
++  }
++
++  void EventNodeCollection::Trace(Visitor* visitor) {
++    visitor->Trace(node_list_);
++    visitor->Trace(name_list_);
++  }
++
++  void EventNodeCollection::AddEventNode(const AtomicString& str, Node* node) {
++    StringBuilder builder;
++    builder.Append(StringView(str));
++    builder.Append("_-_");
++    builder.AppendNumber(count_);
++
++    name_list_->Append(builder.ToString());
++    node_list_->AddNode(node);
++  }
++
++}  // namespace blink
+diff --git a/third_party/blink/renderer/core/dom/events/event_node_collection.h b/third_party/blink/renderer/core/dom/events/event_node_collection.h
+new file mode 100644
+index 000000000000..fdb722884451
+--- /dev/null
++++ b/third_party/blink/renderer/core/dom/events/event_node_collection.h
+@@ -0,0 +1,34 @@
++#ifndef EventNodeCollection_h
++#define EventNodeCollection_h
++
++#include "third_party/blink/renderer/core/dom/dynamic_node_list.h"
++#include "third_party/blink/renderer/core/dom/dom_string_list.h"
++#include "third_party/blink/renderer/platform/wtf/text/string_builder.h"
++
++namespace blink {
++
++class EventNodeCollection final : public GarbageCollectedFinalized<EventNodeCollection> {
++ public:
++  EventNodeCollection();
++  ~EventNodeCollection() {}
++
++  void Trace(Visitor*);
++
++  NodeList* EventNodes() {
++    return node_list_;
++  }
++
++  DOMStringList* EventNames() {
++    return name_list_;
++  }
++  void AddEventNode(const AtomicString& str, Node* node);
++
++ private:
++  Member<DynamicNodeList> node_list_;
++  Member<DOMStringList> name_list_;
++  unsigned count_;
++};
++
++}  // namespace blink
++
++#endif  // EventNodeCollection_h
+diff --git a/third_party/blink/renderer/core/dom/events/event_target.cc b/third_party/blink/renderer/core/dom/events/event_target.cc
+index 6dfea3ee346c..1dfac219ec05 100644
+--- a/third_party/blink/renderer/core/dom/events/event_target.cc
++++ b/third_party/blink/renderer/core/dom/events/event_target.cc
+@@ -422,6 +422,13 @@ bool EventTarget::addEventListener(
+ bool EventTarget::addEventListener(const AtomicString& event_type,
+                                    EventListener* listener,
+                                    bool use_capture) {
++
++  LocalDOMWindow* executing_window = this->ExecutingWindow();
++  Node* node = this->ToNode();
++  if (executing_window && node) {
++      executing_window->AddEventNode(event_type, node);
++  }
++
+   auto* options = MakeGarbageCollected<AddEventListenerOptionsResolved>();
+   options->setCapture(use_capture);
+   SetDefaultAddEventListenerOptions(event_type, listener, options);
+diff --git a/third_party/blink/renderer/core/frame/dom_window.cc b/third_party/blink/renderer/core/frame/dom_window.cc
+index 514f79eca855..155a770947de 100644
+--- a/third_party/blink/renderer/core/frame/dom_window.cc
++++ b/third_party/blink/renderer/core/frame/dom_window.cc
+@@ -37,7 +37,8 @@ namespace blink {
+ DOMWindow::DOMWindow(Frame& frame)
+     : frame_(frame),
+       window_proxy_manager_(frame.GetWindowProxyManager()),
+-      window_is_closing_(false) {}
++      window_is_closing_(false),
++      en_collection_(nullptr) {}
+ 
+ DOMWindow::~DOMWindow() {
+   // The frame must be disconnected before finalization.
+@@ -358,6 +359,36 @@ void DOMWindow::Close(LocalDOMWindow* incumbent_window) {
+   window_is_closing_ = true;
+ }
+ 
++EventNodeCollection* DOMWindow::eventNodeCollection() const {
++  if (!en_collection_)
++    en_collection_ =  MakeGarbageCollected< EventNodeCollection>();
++  return en_collection_.Get();
++}
++
++NodeList* DOMWindow::eventNodes() const {
++  return eventNodeCollection()->EventNodes();
++}
++
++DOMStringList* DOMWindow::eventNames() const {
++  return eventNodeCollection()->EventNames();
++}
++
++void DOMWindow::AddEventNode(const AtomicString& str, Node* node) {
++  eventNodeCollection()->AddEventNode(str, node);
++}
++
++String DOMWindow::info() {
++  return sb_info_.ToString();
++}
++
++void DOMWindow::setInfo(const AtomicString& string) {
++  sb_info_.Append(StringView(string));
++}
++
++void DOMWindow::appendInfo(const String& string) {
++  sb_info_.Append(StringView(string));
++}
++
+ void DOMWindow::focus(v8::Isolate* isolate) {
+   if (!GetFrame())
+     return;
+@@ -516,6 +547,7 @@ void DOMWindow::Trace(blink::Visitor* visitor) {
+   visitor->Trace(window_proxy_manager_);
+   visitor->Trace(input_capabilities_);
+   visitor->Trace(location_);
++  visitor->Trace(en_collection_);
+   EventTargetWithInlineData::Trace(visitor);
+ }
+ 
+diff --git a/third_party/blink/renderer/core/frame/dom_window.h b/third_party/blink/renderer/core/frame/dom_window.h
+index b13487c102e2..7654bf68649d 100644
+--- a/third_party/blink/renderer/core/frame/dom_window.h
++++ b/third_party/blink/renderer/core/frame/dom_window.h
+@@ -8,6 +8,7 @@
+ #include "third_party/blink/renderer/bindings/core/v8/serialization/transferables.h"
+ #include "third_party/blink/renderer/core/core_export.h"
+ #include "third_party/blink/renderer/core/dom/events/event_target.h"
++#include "third_party/blink/renderer/core/dom/events/event_node_collection.h"
+ #include "third_party/blink/renderer/core/frame/frame.h"
+ #include "third_party/blink/renderer/platform/heap/handle.h"
+ #include "third_party/blink/renderer/platform/wtf/assertions.h"
+@@ -88,6 +89,15 @@ class CORE_EXPORT DOMWindow : public EventTargetWithInlineData {
+   DOMWindow* parent() const;
+   DOMWindow* top() const;
+ 
++  String info();
++  void setInfo(const AtomicString&);
++  void appendInfo(const String&);
++
++  NodeList* eventNodes() const;
++  DOMStringList* eventNames() const;
++  void AddEventNode(const AtomicString& str, Node* node);
++  EventNodeCollection* eventNodeCollection() const;
++
+   void focus(v8::Isolate*);
+   virtual void blur() = 0;
+   void close(v8::Isolate*);
+@@ -160,6 +170,8 @@ class CORE_EXPORT DOMWindow : public EventTargetWithInlineData {
+   // operation has been performed, exposes (confusing)
+   // implementation details to scripts.
+   bool window_is_closing_;
++  StringBuilder sb_info_;
++  mutable Member<EventNodeCollection> en_collection_;
+ };
+ 
+ }  // namespace blink
+diff --git a/third_party/blink/renderer/core/frame/local_dom_window.cc b/third_party/blink/renderer/core/frame/local_dom_window.cc
+index 1bc7f3c2b880..240696bae4ac 100644
+--- a/third_party/blink/renderer/core/frame/local_dom_window.cc
++++ b/third_party/blink/renderer/core/frame/local_dom_window.cc
+@@ -633,6 +633,7 @@ Element* LocalDOMWindow::frameElement() const {
+ void LocalDOMWindow::blur() {}
+ 
+ void LocalDOMWindow::print(ScriptState* script_state) {
++  return;
+   if (!GetFrame())
+     return;
+ 
+@@ -664,6 +665,7 @@ void LocalDOMWindow::stop() {
+ }
+ 
+ void LocalDOMWindow::alert(ScriptState* script_state, const String& message) {
++  return;
+   if (!GetFrame())
+     return;
+ 
+@@ -694,6 +696,7 @@ void LocalDOMWindow::alert(ScriptState* script_state, const String& message) {
+ }
+ 
+ bool LocalDOMWindow::confirm(ScriptState* script_state, const String& message) {
++  return false;
+   if (!GetFrame())
+     return false;
+ 
+@@ -726,6 +729,7 @@ bool LocalDOMWindow::confirm(ScriptState* script_state, const String& message) {
+ String LocalDOMWindow::prompt(ScriptState* script_state,
+                               const String& message,
+                               const String& default_value) {
++  return String();
+   if (!GetFrame())
+     return String();
+ 
+diff --git a/third_party/blink/renderer/core/frame/window.idl b/third_party/blink/renderer/core/frame/window.idl
+index a4383284a148..46924eb5bc48 100644
+--- a/third_party/blink/renderer/core/frame/window.idl
++++ b/third_party/blink/renderer/core/frame/window.idl
+@@ -65,6 +65,10 @@
+     [CheckSecurity=ReturnValue, Custom=Getter] readonly attribute Element? frameElement;
+     [CallWith=Isolate, RaisesException] Window? open(optional URLString url="", optional DOMString target = "_blank", optional [TreatNullAs=EmptyString] DOMString features = "");
+ 
++    [CrossOrigin=(Setter, Getter)] attribute DOMString info;
++    readonly attribute NodeList eventNodes;
++    readonly attribute DOMStringList eventNames;
++
+     // indexed properties
+     // https://html.spec.whatwg.org/C/browsers.html#windowproxy-getownproperty
+     [NotEnumerable, CrossOrigin] getter Window (unsigned long index);
+diff --git a/third_party/blink/renderer/core/loader/frame_loader.cc b/third_party/blink/renderer/core/loader/frame_loader.cc
+index 5f54d8101f65..13e01eb8900a 100644
+--- a/third_party/blink/renderer/core/loader/frame_loader.cc
++++ b/third_party/blink/renderer/core/loader/frame_loader.cc
+@@ -727,11 +727,20 @@ void FrameLoader::StartNavigation(const FrameLoadRequest& passed_request,
+   if (HTMLFrameOwnerElement* element = frame_->DeprecatedLocalOwner())
+     element->CancelPendingLazyLoad();
+ 
++
+   FrameLoadRequest request(passed_request);
+   ResourceRequest& resource_request = request.GetResourceRequest();
+   const KURL& url = resource_request.Url();
+   Document* origin_document = request.OriginDocument();
+ 
++  frame_->DomWindow()->appendInfo("_-_");
++  frame_->DomWindow()->appendInfo(url.GetString());
++  frame_->GetDocument()->AddConsoleMessage(ConsoleMessage::Create(
++    mojom::ConsoleMessageSource::kJavaScript,
++    mojom::ConsoleMessageLevel::kInfo,
++      "*[scrawler log] [Navigation] [" + url.ElidedString() + "]"));
++  return;
++
+   resource_request.SetHasUserGesture(
+       LocalFrame::HasTransientUserActivation(frame_));
+ 
+@@ -782,6 +791,7 @@ void FrameLoader::StartNavigation(const FrameLoadRequest& passed_request,
+     return;
+   }
+ 
++
+   // TODO(dgozman): merge page dismissal check and FrameNavigationDisabler.
+   if (!frame_->IsNavigationAllowed() ||
+       frame_->GetDocument()->PageDismissalEventBeingDispatched() !=
+diff --git a/third_party/blink/renderer/core/page/frame_tree.cc b/third_party/blink/renderer/core/page/frame_tree.cc
+index d62069329ebf..a3dd42a69431 100644
+--- a/third_party/blink/renderer/core/page/frame_tree.cc
++++ b/third_party/blink/renderer/core/page/frame_tree.cc
+@@ -209,6 +209,7 @@ FrameTree::FindResult FrameTree::FindOrCreateFrameForNavigation(
+ 
+ Frame* FrameTree::FindFrameForNavigationInternal(
+     FrameLoadRequest& request) const {
++  return this_frame_;
+   const AtomicString& name = request.FrameName();
+ 
+   if (EqualIgnoringASCIICase(name, "_current")) {
