@@ -15,6 +15,11 @@
 
 ## 示例
 
+OSX测试版：https://github.com/myvyang/chromium_for_spider/releases/tag/v1.0.0
+Ubuntu测试版：TODO
+
+打开页面后，由于页面跳转被hook了，因此无论如何点击(或执行任意JS)，应该页面都不会成功跳转。"待跳转的URL"会被记录到`window.info`中。
+
 ![eventNodes](./eventNodes.jpg)
 
 
