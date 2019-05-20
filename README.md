@@ -35,9 +35,13 @@
 
 官方文档见：`https://www.chromium.org/developers/how-tos/get-the-code`。
 
-注意`fetch chromium`或`gclient sync`后，执行`git checkout dbc6c805b7430f401875d50b8566d9f743ca402b`切换版本，`master`版本未必都能编译成功。
-
-编译完成后，执行`git apply path/to/dbc6c805b7430f401875d50b8566d9f743ca402b.diff`应用这个补丁，然后重新编译。
+1. 先安装官方步骤，下载源码并准备好环境。
+2. `git checkout dbc6c805b7430f401875d50b8566d9f743ca402b`切换到制定版本。
+3. `gclient sync`，这一步可能会有报错。如果错误是chromium的某个模块，删除掉该模块继续执行这条命令。
+4. `git apply path/to/dbc6c805b7430f401875d50b8566d9f743ca402b.diff`应用这个补丁。
+2. `gn args out/Release`添加args.gn里的参数(可选，不影响可用性)。
+3. `gn gen out/Release`生产编译文件。
+4. `autoninja -C out/Release chrome`开始编译。
 
 Mac上可执行文件在`src/out/Release/Chromium.app/Contents/MacOS/Chromium`，Ubuntu上可执行文件在`src/out/Release/chrome`。
 
