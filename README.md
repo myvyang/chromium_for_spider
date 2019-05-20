@@ -13,10 +13,11 @@
 3. 禁止掉alert,print,confirm,prompt弹窗。
 4. 禁止页面自己打开新窗口；将预备打开的新窗口的URL记录下来。
 
-## 示例
+## 下载
 
-OSX测试版：https://github.com/myvyang/chromium_for_spider/releases/tag/v1.0.0
-Ubuntu测试版：TODO
+编译好的成品： https://github.com/myvyang/chromium_for_spider/releases
+
+## 示例
 
 打开页面后，由于页面跳转被hook了，因此无论如何点击(或执行任意JS)，应该页面都不会成功跳转。"待跳转的URL"会被记录到`window.info`中。
 
@@ -30,12 +31,6 @@ Ubuntu测试版：TODO
 其中`window.info`将页面中触发的跳转URL等记录了下来，使用`_-_`分割。
 
 `window.eventNames`和`window.eventNodes`配合使用，`eventNames`为事件名称，例如`click`，`onmouseover`等；`eventNodes`为事件绑定的DOM节点，通过JS可以获取。使用例子见`ch_test/fireevent.html`。
-
-## TODO
-
-1. 添加编译好的Ubuntu/OSX包，直接使用
-2. 更多功能
-3. crash排查
 
 ## 编译
 
