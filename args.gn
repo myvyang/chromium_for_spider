@@ -1,0 +1,12 @@
+is_debug = false
+symbol_level = 0
+enable_nacl = false
+blink_symbol_level=0
+is_official_build = true
+disable_ftp_support=true
+disable_libfuzzer=true
+enable_google_now=false
+enable_hangout_services_extension=false
+enable_native_notifications=false
+enable_webrtc=false
+headless_use_embedded_resources = true
