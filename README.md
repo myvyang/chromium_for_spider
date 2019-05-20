@@ -13,6 +13,11 @@
 3. 禁止掉alert,print,confirm,prompt弹窗。
 4. 禁止页面自己打开新窗口；将预备打开的新窗口的URL记录下来。
 
+## 示例
+
+![eventNodes](./eventNodes.jpg)
+
+
 ## 使用说明
 
 通过修改chromium源码实现了核心功能后，在浏览器的`window`对象中增加了三个属性：`window.info`，`window.eventNames`，`window.eventNodes`。
