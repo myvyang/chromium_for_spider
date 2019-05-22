@@ -32,6 +32,20 @@ index 2045100270c2..2e02f31dd7f3 100644
    DCHECK(header_value);
    if (!headers)
      return HeaderDisposition::NONE;
+diff --git a/net/url_request/url_request_job.cc b/net/url_request/url_request_job.cc
+index 06df9bd3e545..9ae377f9b4ab 100644
+--- a/net/url_request/url_request_job.cc
++++ b/net/url_request/url_request_job.cc
+@@ -207,7 +207,8 @@ bool URLRequestJob::IsRedirectResponse(GURL* location,
+     }
+   }
+   *http_status_code = headers->response_code();
+-  return true;
++
++  return false;
+ }
+ 
+ bool URLRequestJob::CopyFragmentOnRedirect(const GURL& location) const {
 diff --git a/third_party/blink/renderer/core/dom/BUILD.gn b/third_party/blink/renderer/core/dom/BUILD.gn
 index 9557a946f0d3..e6be6871b5c0 100644
 --- a/third_party/blink/renderer/core/dom/BUILD.gn
@@ -299,6 +313,18 @@ index b13487c102e2..7654bf68649d 100644
  };
  
  }  // namespace blink
+diff --git a/third_party/blink/renderer/core/frame/history.cc b/third_party/blink/renderer/core/frame/history.cc
+index 1506efc48858..142eefd3a364 100644
+--- a/third_party/blink/renderer/core/frame/history.cc
++++ b/third_party/blink/renderer/core/frame/history.cc
+@@ -267,6 +267,7 @@ void History::StateObjectAdded(scoped_refptr<SerializedScriptValue> data,
+                                HistoryScrollRestorationType restoration_type,
+                                WebFrameLoadType type,
+                                ExceptionState& exception_state) {
++  return;
+   if (!GetFrame() || !GetFrame()->GetPage() ||
+       !GetFrame()->Loader().GetDocumentLoader()) {
+     exception_state.ThrowSecurityError(
 diff --git a/third_party/blink/renderer/core/frame/local_dom_window.cc b/third_party/blink/renderer/core/frame/local_dom_window.cc
 index 1bc7f3c2b880..240696bae4ac 100644
 --- a/third_party/blink/renderer/core/frame/local_dom_window.cc
