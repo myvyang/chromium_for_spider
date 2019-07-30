@@ -12,6 +12,7 @@
 2. 忽视掉"X-Frame-Options"头，即允许任意页面被iframe。
 3. 禁止掉alert,print,confirm,prompt弹窗。
 4. 禁止页面自己打开新窗口；将预备打开的新窗口的URL记录下来。
+5. 干掉navigator.webdriver属性。
 
 ## 下载
 
