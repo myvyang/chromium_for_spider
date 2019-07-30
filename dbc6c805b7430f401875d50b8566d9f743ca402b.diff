@@ -361,6 +361,30 @@ index 1bc7f3c2b880..240696bae4ac 100644
    if (!GetFrame())
      return String();
  
+diff --git a/third_party/blink/renderer/core/frame/navigator.h b/third_party/blink/renderer/core/frame/navigator.h
+index 4572df017cf4..e5e4b1f907f7 100644
+--- a/third_party/blink/renderer/core/frame/navigator.h
++++ b/third_party/blink/renderer/core/frame/navigator.h
+@@ -56,7 +56,7 @@ class CORE_EXPORT Navigator final : public ScriptWrappable,
+   // NavigatorCookies
+   bool cookieEnabled() const;
+ 
+-  bool webdriver() const { return true; }
++  bool webdriver() const { return false; }
+ 
+   String productSub() const;
+   String vendor() const;
+diff --git a/third_party/blink/renderer/core/frame/navigator_automation_information.idl b/third_party/blink/renderer/core/frame/navigator_automation_information.idl
+index 263575eabe4d..9c7d78c478d6 100644
+--- a/third_party/blink/renderer/core/frame/navigator_automation_information.idl
++++ b/third_party/blink/renderer/core/frame/navigator_automation_information.idl
+@@ -8,5 +8,5 @@
+     Exposed=Window,
+     RuntimeEnabled=AutomationControlled
+ ] interface mixin NavigatorAutomationInformation {
+-    readonly attribute boolean webdriver;
++    // readonly attribute boolean webdriver;
+ };
 diff --git a/third_party/blink/renderer/core/frame/window.idl b/third_party/blink/renderer/core/frame/window.idl
 index a4383284a148..46924eb5bc48 100644
 --- a/third_party/blink/renderer/core/frame/window.idl
