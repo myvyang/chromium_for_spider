@@ -1,3 +1,7 @@
+
+
+[中文版本(Chinese version)](./README.zh-cn.md)
+
 ## Core functions
 
 By modifying the chromium source code, two functions that are more concerned about in two dynamic crawlers are mainly implemented:
