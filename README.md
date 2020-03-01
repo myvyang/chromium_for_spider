@@ -26,8 +26,7 @@ Compiled finished product: https://github.com/myvyang/chromium_for_spider/releas
 
 After opening the page, because the page jump is hooked, no matter how you click (or execute any JS), the page should not jump successfully. "URL to be redirected" will be recorded in `window.info`.
 
-! [eventNodes] (./ eventNodes.jpg)
-
+![eventNodes](./eventNodes.jpg)
 
 ## Instructions for use
 
