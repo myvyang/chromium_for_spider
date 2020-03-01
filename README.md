@@ -16,11 +16,11 @@ There are also some small features:
 2. Ignore the "X-Frame-Options" header, which allows arbitrary pages to be iframed.
 3. Prohibit alert, print, confirm, prompt popups.
 4. Forbid the page to open a new window by itself; record the URL of the new window to be opened.
-5. Kill the navigator.webdriver property.
+5. Hidden the navigator.webdriver property.
 
 ## Download
 
-Compiled finished product: https://github.com/myvyang/chromium_for_spider/releases
+Compiled binary: https://github.com/myvyang/chromium_for_spider/releases
 
 ## Example
 
