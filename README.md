@@ -34,7 +34,7 @@ After implementing the core function by modifying the chromium source code, thre
 
 Among them, `window.info` records the jump URL triggered in the page, etc., and uses` _-_ `to separate.
 
-`window.eventNames` and` window.eventNodes` are used together, `eventNames` is the event name, such as` click`, `onmouseover`, etc.` eventNodes` is the DOM node bound to the event, which can be obtained through JS. See `ch_test / fireevent.html` for usage examples.
+`window.eventNames` and` window.eventNodes` are used together, `eventNames` is the event name, such as` click`, `onmouseover`, etc.` eventNodes` is the DOM node bound to the event, which can be obtained through JS. See `ch_test/fireevent.html` for usage examples.
 
 ## Compile
 
@@ -42,14 +42,14 @@ The current (20190517) version of chromium used is `dbc6c805b7430f401875d50b8566
 
 Today, the compilation of chromium is very simple. According to the official steps, choose the correct development version (such as `dbc6c805b7430f401875d50b8566d9f743ca402b` currently used), which can completely achieve no warning throughout the process.
 
-See the official documentation: `https: // www.chromium.org / developers / how-tos / get-the-code`.
+See the official documentation: `https://www.chromium.org/developers/how-tos/get-the-code`.
 
 1. Install the official steps first, download the source code and prepare the environment.
 2. `git checkout dbc6c805b7430f401875d50b8566d9f743ca402b` to switch to the specified version.
 3. `gclient sync`, this step may report an error. If the error is a module of chromium, delete the module and continue executing this command.
-4. `git apply path / to / dbc6c805b7430f401875d50b8566d9f743ca402b.diff` apply this patch.
-2. `gn args out / Release` adds parameters in args.gn (optional, does not affect usability).
-3. `gn gen out / Release` produces compiled files.
-4. `autoninja -C out / Release chrome` starts to compile.
+4. `git apply path/to/dbc6c805b7430f401875d50b8566d9f743ca402b.diff` apply this patch.
+2. `gn args out/Release` adds parameters in args.gn (optional, does not affect usability).
+3. `gn gen out/Release` produces compiled files.
+4. `autoninja -C out/Release chrome` starts to compile.
 
-The executable file on Mac is `src / out / Release / Chromium.app / Contents / MacOS / Chromium`, and the executable file on Ubuntu is` src / out / Release / chrome`.
+The executable file on Mac is `src/out/Release/Chromium.app/Contents/MacOS/Chromium`, and the executable file on Ubuntu is` src/out/Release/chrome`.
