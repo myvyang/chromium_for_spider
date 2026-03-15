@@ -53,3 +53,4 @@ See the official documentation: `https://www.chromium.org/developers/how-tos/get
 4. `autoninja -C out/Release chrome` starts to compile.
 
 The executable file on Mac is `src/out/Release/Chromium.app/Contents/MacOS/Chromium`, and the executable file on Ubuntu is` src/out/Release/chrome`.
+
